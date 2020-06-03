@@ -1,5 +1,7 @@
 package com.example.get_nation_info;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -7,15 +9,9 @@ import org.json.JSONObject;
 
 import java.io.Serializable;
 
-public class CountrySimpleData implements Serializable {
+public class CountrySimpleData implements Parcelable {
     String countryCode, name, population, areaInSqKm = "";
 
-//    public CountrySimpleData(JSONObject jsonObject) throws JSONException {
-//            countryCode = jsonObject.getString("countryCode");
-//            name = jsonObject.getString("countryName");
-//            population = jsonObject.getString("population");
-//            areaInSqKm =  jsonObject.getString("areaInSqKm");
-//    }
 
     public CountrySimpleData(String code, String name, String population, String areaInSqKm){
         this.countryCode = code;
@@ -23,6 +19,38 @@ public class CountrySimpleData implements Serializable {
         this.population = population;
         this.areaInSqKm = areaInSqKm;
     }
+
+    protected CountrySimpleData(Parcel in) {
+        countryCode = in.readString();
+        name = in.readString();
+        population = in.readString();
+        areaInSqKm = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(countryCode);
+        dest.writeString(name);
+        dest.writeString(population);
+        dest.writeString(areaInSqKm);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<CountrySimpleData> CREATOR = new Creator<CountrySimpleData>() {
+        @Override
+        public CountrySimpleData createFromParcel(Parcel in) {
+            return new CountrySimpleData(in);
+        }
+
+        @Override
+        public CountrySimpleData[] newArray(int size) {
+            return new CountrySimpleData[size];
+        }
+    };
 
     public String getCountryCode() {
         return countryCode;

@@ -1,6 +1,8 @@
 package com.example.get_nation_info;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -8,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,41 +37,19 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     ProgressDialog progressDialog;
-    TextView infoField;
+    TextView emptyElement;
     ImageView img;
-    List<CountrySimpleData> countries ;
+    ArrayList<CountrySimpleData> countries ;
     JSONObject jsonObject;
+    CountryAdapter adapter;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        img = findViewById(R.id.ImageView01);
-        infoField = findViewById(R.id.info);
-        setFlag();
-//        img.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(getApplicationContext(),CountryDetails.class);
-//                CountrySimpleData ct1 = new CountrySimpleData("vn1","code1","1000","1111");
-//                countries = new ArrayList<CountrySimpleData>();
-//                countries.add(ct1);
-//                countries.add(new CountrySimpleData("vn2","code2","1000","1111"));
-//                countries.add(new CountrySimpleData("vn3","code3","1000","1111"));
-//                intent.putExtra("test", (Serializable) countries);
-//                startActivity(intent);
-//            }
-//        });
-    }
-
-    private boolean setFlag(){
-        Picasso.get()
-                .load("https://www.countryflags.io/be/flat/64.png")
-                .resize(128,128)
-                .into(img );
+        countries = new ArrayList<CountrySimpleData>();
         new jsonTask().execute("http://api.geonames.org/countryInfoJSON?formatted=true&lang=it&username=caoth&style=full");
-        Toast.makeText(getApplicationContext(),"set flag: done !",Toast.LENGTH_LONG).show();
-        return true;
     }
 
     private class jsonTask extends AsyncTask<String, String, String>{
@@ -139,15 +120,32 @@ public class MainActivity extends AppCompatActivity {
 
 //           Get optional values from jsonObject
             try {
-//                String result = jsonObject.getJSONArray("geonames").get(1).toString();
                 ArrayList<JSONObject> list = JSONArray_to_JSONObjectArrayList(jsonObject.getJSONArray("geonames"));
-//                jsonObject = new JSONObject(result);
-                infoField.setText("country code cua 5 la "+ list.get(5).getString("countryName"));
+                // Pass needed values from JSONObject to countries
+                for(int i=0; i<list.size(); i++){
+                    JSONObject obj = list.get(i);
+                    countries.add(new CountrySimpleData(
+                            obj.getString("countryCode"),
+                            obj.getString("countryName"),
+                            obj.getString("population"),
+                            obj.getString("areaInSqKm"))
+                    );
+
+                }
             } catch (JSONException e) {
                 Toast.makeText(MainActivity.this,"Loi get string", Toast.LENGTH_LONG);
                 e.printStackTrace();
             }
-//            infoField.setText(jsonObject.getString(""));
+            emptyElement = findViewById(R.id.emptyElement);
+            if(countries.size()>0){
+                emptyElement.setVisibility(View.INVISIBLE);
+            } else{
+                emptyElement.setVisibility((View.VISIBLE));
+            }
+            adapter = new CountryAdapter(MainActivity.this, countries);
+            recyclerView = findViewById(R.id.countryName);
+            recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+            recyclerView.setAdapter(adapter);
         }
     }
 
